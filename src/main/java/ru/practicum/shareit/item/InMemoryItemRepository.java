@@ -1,6 +1,7 @@
 package ru.practicum.shareit.item;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.util.StringUtils;
 import ru.practicum.shareit.item.model.Item;
 
 import java.util.*;
@@ -42,7 +43,7 @@ public class InMemoryItemRepository implements ItemRepository {
 
     @Override
     public List<Item> search(String text) {
-        if (text == null || text.isBlank()) {
+        if (!StringUtils.hasText(text)) {
             return Collections.emptyList();
         }
         String lower = text.toLowerCase();

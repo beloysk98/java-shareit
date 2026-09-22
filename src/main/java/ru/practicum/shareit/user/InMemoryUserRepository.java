@@ -59,4 +59,10 @@ public class InMemoryUserRepository implements UserRepository {
                 .filter(u -> u.getEmail().equalsIgnoreCase(email))
                 .findFirst();
     }
+
+    @Override
+    public boolean existsByEmailAndIdNot(String email, Long id) {
+        return users.values().stream()
+                .anyMatch(u -> u.getEmail().equalsIgnoreCase(email) && !u.getId().equals(id));
+    }
 }

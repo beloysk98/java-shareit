@@ -2,6 +2,7 @@ package ru.practicum.shareit.item;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.model.Item;
@@ -37,10 +38,10 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException("Редактировать вещь может только её владелец");
         }
 
-        if (itemDto.getName() != null && !itemDto.getName().isBlank()) {
+        if (StringUtils.hasText(itemDto.getName())) {
             existing.setName(itemDto.getName());
         }
-        if (itemDto.getDescription() != null && !itemDto.getDescription().isBlank()) {
+        if (StringUtils.hasText(itemDto.getDescription())) {
             existing.setDescription(itemDto.getDescription());
         }
         if (itemDto.getAvailable() != null) {

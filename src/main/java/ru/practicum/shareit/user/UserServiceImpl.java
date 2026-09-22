@@ -2,12 +2,13 @@ package ru.practicum.shareit.user;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 import ru.practicum.shareit.exception.ConflictException;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,16 +25,17 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto update(Long userId, UserDto userDto) {
+    public UserDto update(Long userId, UserUpdateDto
+
+            userDto) {
         User existing = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь с id " + userId + " не найден"));
 
-        if (userDto.getName() != null) {
+        if (StringUtils.hasText(userDto.getName())) {
             existing.setName(userDto.getName());
         }
-        if (userDto.getEmail() != null && !userDto.getEmail().equals(existing.getEmail())) {
-            Optional<User> byEmail = userRepository.findByEmail(userDto.getEmail());
-            if (byEmail.isPresent() && !byEmail.get().getId().equals(userId)) {
+        if (StringUtils.hasText(userDto.getEmail()) && !userDto.getEmail().equals(existing.getEmail())) {
+            if (userRepository.existsByEmailAndIdNot(userDto.getEmail(), userId)) {
                 throw new ConflictException("Email " + userDto.getEmail() + " уже занят");
             }
             existing.setEmail(userDto.getEmail());

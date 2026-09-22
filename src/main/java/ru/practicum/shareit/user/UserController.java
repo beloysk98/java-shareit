@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.dto.UserUpdateDto;
 
 import java.util.List;
 
@@ -23,7 +24,7 @@ public class UserController {
 
     @PatchMapping("/{userId}")
     public UserDto update(@PathVariable Long userId,
-                          @RequestBody UserDto userDto) {
+                          @Valid @RequestBody UserUpdateDto userDto) {
         return userService.update(userId, userDto);
     }
 
