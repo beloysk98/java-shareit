@@ -2,6 +2,7 @@ package ru.practicum.shareit.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -41,6 +42,13 @@ public class ErrorHandler {
                 .orElse("Ошибка валидации");
         log.warn("400: {}", message);
         return new ErrorResponse(message);
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleNotReadable(final HttpMessageNotReadableException e) {
+        log.warn("400: некорректное тело запроса");
+        return new ErrorResponse("Некорректное тело запроса");
     }
 
     @ExceptionHandler
