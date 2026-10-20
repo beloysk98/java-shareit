@@ -52,7 +52,7 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
         if (!booking.getItem().getOwner().getId().equals(userId)) {
-            throw new NotFoundException("Подтверждать может только владелец");
+            throw new ValidationException("Подтверждать может только владелец");
         }
         if (booking.getStatus() != BookingStatus.WAITING) {
             throw new ValidationException("Бронирование уже обработано");
