@@ -3,6 +3,7 @@ package ru.practicum.shareit.item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
@@ -17,7 +18,9 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,13 +81,33 @@ public class ItemServiceImpl implements ItemService {
     public List<ItemResponseDto> getByOwner(Long userId) {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
-        return itemRepository.findAllByOwnerId(userId).stream().map(item -> {
+
+        List<Item> items = itemRepository.findAllByOwnerId(userId);
+        if (items.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        LocalDateTime now = LocalDateTime.now();
+
+        Map<Long, List<CommentDto>> commentsMap = commentRepository
+                .findAllByItemIdInOrderByCreatedAsc(itemIds).stream()
+                .collect(Collectors.groupingBy(c -> c.getItem().getId(),
+                        Collectors.mapping(CommentMapper::toDto, Collectors.toList())));
+
+        Map<Long, BookingShortDto> lastBookingsMap = new HashMap<>();
+        bookingRepository.findAllPastByItemIds(itemIds, BookingStatus.APPROVED, now)
+                .forEach(b -> lastBookingsMap.putIfAbsent(b.getItem().getId(), toShortDto(b)));
+
+        Map<Long, BookingShortDto> nextBookingsMap = new HashMap<>();
+        bookingRepository.findAllNextByItemIds(itemIds, BookingStatus.APPROVED, now)
+                .forEach(b -> nextBookingsMap.putIfAbsent(b.getItem().getId(), toShortDto(b)));
+
+        return items.stream().map(item -> {
             ItemResponseDto dto = ItemMapper.toResponseDto(item);
-            dto.setLastBooking(lastBooking(item.getId()));
-            dto.setNextBooking(nextBooking(item.getId()));
-            dto.setComments(commentRepository.findAllByItemIdOrderByCreatedAsc(item.getId()).stream()
-                    .map(CommentMapper::toDto)
-                    .collect(Collectors.toList()));
+            dto.setLastBooking(lastBookingsMap.get(item.getId()));
+            dto.setNextBooking(nextBookingsMap.get(item.getId()));
+            dto.setComments(commentsMap.getOrDefault(item.getId(), List.of()));
             return dto;
         }).collect(Collectors.toList());
     }
@@ -125,24 +148,23 @@ public class ItemServiceImpl implements ItemService {
     private BookingShortDto lastBooking(Long itemId) {
         return bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByEndDesc(
                         itemId, BookingStatus.APPROVED, LocalDateTime.now())
-                .map(b -> BookingShortDto.builder()
-                        .id(b.getId())
-                        .bookerId(b.getBooker().getId())
-                        .start(b.getStart())
-                        .end(b.getEnd())
-                        .build())
+                .map(this::toShortDto)
                 .orElse(null);
     }
 
     private BookingShortDto nextBooking(Long itemId) {
         return bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
                         itemId, BookingStatus.APPROVED, LocalDateTime.now())
-                .map(b -> BookingShortDto.builder()
-                        .id(b.getId())
-                        .bookerId(b.getBooker().getId())
-                        .start(b.getStart())
-                        .end(b.getEnd())
-                        .build())
+                .map(this::toShortDto)
                 .orElse(null);
+    }
+
+    private BookingShortDto toShortDto(Booking b) {
+        return BookingShortDto.builder()
+                .id(b.getId())
+                .bookerId(b.getBooker().getId())
+                .start(b.getStart())
+                .end(b.getEnd())
+                .build();
     }
 }
