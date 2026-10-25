@@ -27,7 +27,7 @@ public class BookingClient extends BaseClient {
         return post(API_PREFIX, userId, dto, Object.class).getBody();
     }
 
-    public Object approve(Long userId, Long bookingId, Boolean approved) {
+    public Object approve(Long bookingId, Boolean approved, Long userId) {
         String path = API_PREFIX + "/" + bookingId + "?approved=" + approved;
         return patch(path, userId, null, Object.class).getBody();
     }

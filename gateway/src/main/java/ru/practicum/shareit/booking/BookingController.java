@@ -6,7 +6,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.client.BookingClient;
-import ru.practicum.shareit.exception.ValidationException;
 
 @RestController
 @RequestMapping("/bookings")
@@ -18,9 +17,6 @@ public class BookingController {
     @ResponseStatus(HttpStatus.CREATED)
     public Object create(@RequestHeader("X-Sharer-User-Id") Long userId,
                          @Valid @RequestBody BookingRequestDto dto) {
-        if (!dto.getStart().isBefore(dto.getEnd())) {
-            throw new ValidationException("Дата начала должна быть раньше даты окончания");
-        }
         return bookingClient.create(userId, dto);
     }
 
@@ -28,7 +24,7 @@ public class BookingController {
     public Object approve(@RequestHeader("X-Sharer-User-Id") Long userId,
                           @PathVariable Long bookingId,
                           @RequestParam Boolean approved) {
-        return bookingClient.approve(userId, bookingId, approved);
+        return bookingClient.approve(bookingId, approved, userId);
     }
 
     @GetMapping("/{bookingId}")

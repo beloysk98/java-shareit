@@ -36,9 +36,8 @@ public class UserClient extends BaseClient {
         return get(API_PREFIX + "/" + userId, UserDto.class).getBody();
     }
 
-    @SuppressWarnings("unchecked")
     public List<UserDto> getAll() {
-        return (List<UserDto>) get(API_PREFIX, List.class).getBody();
+        return getList(API_PREFIX, null, UserDto.class);
     }
 
     public void delete(Long userId) {

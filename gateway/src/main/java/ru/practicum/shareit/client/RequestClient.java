@@ -27,14 +27,12 @@ public class RequestClient extends BaseClient {
         return post(API_PREFIX, userId, dto, ItemRequestDto.class).getBody();
     }
 
-    @SuppressWarnings("unchecked")
     public List<ItemRequestDto> getAllByRequestor(Long userId) {
-        return (List<ItemRequestDto>) get(API_PREFIX, userId, List.class).getBody();
+        return getList(API_PREFIX, userId, ItemRequestDto.class);
     }
 
-    @SuppressWarnings("unchecked")
     public List<ItemRequestDto> getAllOther(Long userId) {
-        return (List<ItemRequestDto>) get(API_PREFIX + "/all", userId, List.class).getBody();
+        return getList(API_PREFIX + "/all", userId, ItemRequestDto.class);
     }
 
     public ItemRequestDto getById(Long userId, Long requestId) {

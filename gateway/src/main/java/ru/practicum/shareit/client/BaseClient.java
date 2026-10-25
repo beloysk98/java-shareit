@@ -5,6 +5,7 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -34,8 +35,7 @@ public class BaseClient {
                 path,
                 HttpMethod.GET,
                 entity,
-                new ParameterizedTypeReference<List<T>>() {
-                }
+                new ParameterizedTypeReference<List<T>>() {}
         );
         return response.getBody();
     }
@@ -69,13 +69,8 @@ public class BaseClient {
 
     private <T, R> ResponseEntity<R> makeAndSendRequest(HttpMethod method, String path, Long userId,
                                                         Map<String, Object> parameters, T body, Class<R> responseType) {
-        HttpHeaders headers = headers(userId);
-        HttpEntity<T> requestEntity = new HttpEntity<>(body, headers);
-
-        // Если параметров нет, передаем null, чтобы RestTemplate не ломал URL
-        if (parameters == null || parameters.isEmpty()) {
-            return rest.exchange(path, method, requestEntity, responseType);
-        }
-        return rest.exchange(path, method, requestEntity, responseType, parameters);
+        HttpEntity<T> requestEntity = new HttpEntity<>(body, headers(userId));
+        Map<String, Object> params = (parameters != null) ? parameters : Collections.emptyMap();
+        return rest.exchange(path, method, requestEntity, responseType, params);
     }
 }
