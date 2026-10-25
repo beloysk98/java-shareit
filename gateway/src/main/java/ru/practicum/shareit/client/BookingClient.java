@@ -3,11 +3,15 @@ package ru.practicum.shareit.client;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -28,18 +32,19 @@ public class BookingClient extends BaseClient {
     }
 
     public Object approve(Long userId, Long bookingId, Boolean approved) {
-        return patch(API_PREFIX + "/" + bookingId, userId, Map.of("approved", approved), null, Object.class).getBody();
+        String path = API_PREFIX + "/" + bookingId + "?approved=" + approved;
+        return patch(path, userId, null, Object.class).getBody();
     }
 
     public Object getById(Long userId, Long bookingId) {
         return get(API_PREFIX + "/" + bookingId, userId, Object.class).getBody();
     }
 
-    public Object getAllByBooker(Long userId, String state) {
-        return get(API_PREFIX, userId, Map.of("state", state), Object.class).getBody();
+    public List<Object> getAllByBooker(Long userId, String state) {
+        return getList(API_PREFIX + "?state=" + state, userId, Object.class);
     }
 
-    public Object getAllByOwner(Long userId, String state) {
-        return get(API_PREFIX + "/owner", userId, Map.of("state", state), Object.class).getBody();
+    public List<Object> getAllByOwner(Long userId, String state) {
+        return getList(API_PREFIX + "/owner?state=" + state, userId, Object.class);
     }
 }

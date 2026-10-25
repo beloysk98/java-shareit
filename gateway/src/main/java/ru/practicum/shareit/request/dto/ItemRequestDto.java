@@ -6,6 +6,9 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -16,4 +19,8 @@ public class ItemRequestDto {
 
     @NotBlank(message = "Описание запроса не может быть пустым")
     private String description;
+
+    private LocalDateTime created;
+
+    private List<ItemShortDto> items;
 }

@@ -10,4 +10,6 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     List<Comment> findAllByItemIdOrderByCreatedAsc(Long itemId);
 
     List<Comment> findAllByItemIdInOrderByCreatedAsc(Collection<Long> itemIds);
+
+    List<Comment> findAllByItemIdOrderByCreatedDesc(Long itemId);
 }

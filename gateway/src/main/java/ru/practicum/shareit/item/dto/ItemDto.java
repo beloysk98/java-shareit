@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -24,4 +26,9 @@ public class ItemDto {
     private Boolean available;
 
     private Long requestId;
+    private Long ownerId;
+
+    private Object lastBooking;
+    private Object nextBooking;
+    private List<CommentDto> comments;
 }

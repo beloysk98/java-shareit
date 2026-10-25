@@ -7,12 +7,12 @@ import ru.practicum.shareit.booking.Booking;
 import ru.practicum.shareit.booking.BookingRepository;
 import ru.practicum.shareit.booking.BookingStatus;
 import ru.practicum.shareit.booking.dto.BookingShortDto;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.exception.NotFoundException;
 import ru.practicum.shareit.exception.ValidationException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
-import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.ItemRequest;
 import ru.practicum.shareit.request.ItemRequestRepository;
@@ -20,9 +20,7 @@ import ru.practicum.shareit.user.User;
 import ru.practicum.shareit.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -33,7 +31,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final BookingRepository bookingRepository;
     private final CommentRepository commentRepository;
-    private final ItemRequestRepository requestRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     @Transactional
@@ -43,47 +41,66 @@ public class ItemServiceImpl implements ItemService {
 
         ItemRequest request = null;
         if (dto.getRequestId() != null) {
-            request = requestRepository.findById(dto.getRequestId())
+            request = itemRequestRepository.findById(dto.getRequestId())
                     .orElseThrow(() -> new NotFoundException("Запрос не найден"));
         }
 
-        return ItemMapper.toItemDto(itemRepository.save(ItemMapper.toItem(dto, owner, request)));
+        Item item = ItemMapper.toItem(dto, owner, request);
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
     @Transactional
     public ItemDto update(Long userId, Long itemId, ItemDto dto) {
-        Item existing = itemRepository.findById(itemId)
+        Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
-        if (!existing.getOwner().getId().equals(userId)) {
+
+        if (!item.getOwner().getId().equals(userId)) {
             throw new NotFoundException("Редактировать может только владелец");
         }
 
         if (dto.getName() != null && !dto.getName().isBlank()) {
-            existing.setName(dto.getName());
+            item.setName(dto.getName());
         }
         if (dto.getDescription() != null && !dto.getDescription().isBlank()) {
-            existing.setDescription(dto.getDescription());
+            item.setDescription(dto.getDescription());
         }
         if (dto.getAvailable() != null) {
-            existing.setAvailable(dto.getAvailable());
+            item.setAvailable(dto.getAvailable());
         }
 
-        return ItemMapper.toItemDto(itemRepository.save(existing));
+        return ItemMapper.toItemDto(itemRepository.save(item));
     }
 
     @Override
     public ItemResponseDto getById(Long userId, Long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
+
         ItemResponseDto dto = ItemMapper.toResponseDto(item);
-        dto.setComments(commentRepository.findAllByItemIdOrderByCreatedAsc(itemId).stream()
-                .map(CommentMapper::toDto)
-                .collect(Collectors.toList()));
+
+        LocalDateTime now = LocalDateTime.now();
+
         if (item.getOwner().getId().equals(userId)) {
-            dto.setLastBooking(lastBooking(itemId));
-            dto.setNextBooking(nextBooking(itemId));
+            Booking last = bookingRepository
+                    .findFirstByItemIdAndStatusAndEndBeforeOrderByEndDesc(itemId, BookingStatus.APPROVED, now)
+                    .orElse(null);
+            if (last != null) {
+                dto.setLastBooking(new BookingShortDto(last.getId(), last.getBooker().getId(), last.getStart(), last.getEnd()));
+            }
+
+            Booking next = bookingRepository
+                    .findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(itemId, BookingStatus.APPROVED, now)
+                    .orElse(null);
+            if (next != null) {
+                dto.setNextBooking(new BookingShortDto(next.getId(), next.getBooker().getId(), next.getStart(), next.getEnd()));
+            }
         }
+
+        dto.setComments(commentRepository.findAllByItemIdOrderByCreatedDesc(itemId).stream()
+                .map(c -> new CommentDto(c.getId(), c.getText(), c.getAuthor().getName(), c.getCreated()))
+                .collect(Collectors.toList()));
+
         return dto;
     }
 
@@ -92,32 +109,21 @@ public class ItemServiceImpl implements ItemService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("Пользователь не найден"));
 
-        List<Item> items = itemRepository.findAllByOwnerId(userId);
-        if (items.isEmpty()) {
-            return List.of();
-        }
-
-        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
         LocalDateTime now = LocalDateTime.now();
 
-        Map<Long, List<CommentDto>> commentsMap = commentRepository
-                .findAllByItemIdInOrderByCreatedAsc(itemIds).stream()
-                .collect(Collectors.groupingBy(c -> c.getItem().getId(),
-                        Collectors.mapping(CommentMapper::toDto, Collectors.toList())));
-
-        Map<Long, BookingShortDto> lastBookingsMap = new HashMap<>();
-        bookingRepository.findAllPastByItemIds(itemIds, BookingStatus.APPROVED, now)
-                .forEach(b -> lastBookingsMap.putIfAbsent(b.getItem().getId(), toShortDto(b)));
-
-        Map<Long, BookingShortDto> nextBookingsMap = new HashMap<>();
-        bookingRepository.findAllNextByItemIds(itemIds, BookingStatus.APPROVED, now)
-                .forEach(b -> nextBookingsMap.putIfAbsent(b.getItem().getId(), toShortDto(b)));
-
-        return items.stream().map(item -> {
+        return itemRepository.findAllByOwnerId(userId).stream().map(item -> {
             ItemResponseDto dto = ItemMapper.toResponseDto(item);
-            dto.setLastBooking(lastBookingsMap.get(item.getId()));
-            dto.setNextBooking(nextBookingsMap.get(item.getId()));
-            dto.setComments(commentsMap.getOrDefault(item.getId(), List.of()));
+
+            bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByEndDesc(item.getId(), BookingStatus.APPROVED, now)
+                    .ifPresent(last -> dto.setLastBooking(new BookingShortDto(last.getId(), last.getBooker().getId(), last.getStart(), last.getEnd())));
+
+            bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(item.getId(), BookingStatus.APPROVED, now)
+                    .ifPresent(next -> dto.setNextBooking(new BookingShortDto(next.getId(), next.getBooker().getId(), next.getStart(), next.getEnd())));
+
+            dto.setComments(commentRepository.findAllByItemIdOrderByCreatedDesc(item.getId()).stream()
+                    .map(c -> new CommentDto(c.getId(), c.getText(), c.getAuthor().getName(), c.getCreated()))
+                    .collect(Collectors.toList()));
+
             return dto;
         }).collect(Collectors.toList());
     }
@@ -140,9 +146,10 @@ public class ItemServiceImpl implements ItemService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException("Вещь не найдена"));
 
-        boolean hadBooking = bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndBefore(
+        boolean hasCompletedBooking = bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndBefore(
                 userId, itemId, BookingStatus.APPROVED, LocalDateTime.now());
-        if (!hadBooking) {
+
+        if (!hasCompletedBooking) {
             throw new ValidationException("Оставить комментарий можно только после аренды вещи");
         }
 
@@ -152,29 +159,8 @@ public class ItemServiceImpl implements ItemService {
                 .author(author)
                 .created(LocalDateTime.now())
                 .build();
-        return CommentMapper.toDto(commentRepository.save(comment));
-    }
 
-    private BookingShortDto lastBooking(Long itemId) {
-        return bookingRepository.findFirstByItemIdAndStatusAndEndBeforeOrderByEndDesc(
-                        itemId, BookingStatus.APPROVED, LocalDateTime.now())
-                .map(this::toShortDto)
-                .orElse(null);
-    }
-
-    private BookingShortDto nextBooking(Long itemId) {
-        return bookingRepository.findFirstByItemIdAndStatusAndStartAfterOrderByStartAsc(
-                        itemId, BookingStatus.APPROVED, LocalDateTime.now())
-                .map(this::toShortDto)
-                .orElse(null);
-    }
-
-    private BookingShortDto toShortDto(Booking b) {
-        return BookingShortDto.builder()
-                .id(b.getId())
-                .bookerId(b.getBooker().getId())
-                .start(b.getStart())
-                .end(b.getEnd())
-                .build();
+        Comment saved = commentRepository.save(comment);
+        return new CommentDto(saved.getId(), saved.getText(), saved.getAuthor().getName(), saved.getCreated());
     }
 }

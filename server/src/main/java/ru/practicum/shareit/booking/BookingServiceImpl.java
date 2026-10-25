@@ -44,12 +44,16 @@ public class BookingServiceImpl implements BookingService {
             throw new ValidationException("Некорректные даты бронирования");
         }
 
-        return BookingMapper.toResponseDto(bookingRepository.save(BookingMapper.toBooking(dto, item, booker)));
+        Booking saved = bookingRepository.save(BookingMapper.toBooking(dto, item, booker));
+        return BookingMapper.toResponseDto(saved);
     }
 
     @Override
     @Transactional
     public BookingResponseDto approve(Long userId, Long bookingId, Boolean approved) {
+        if (approved == null) {
+            throw new ValidationException("Параметр approved обязателен");
+        }
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException("Бронирование не найдено"));
 
@@ -61,7 +65,7 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(approved ? BookingStatus.APPROVED : BookingStatus.REJECTED);
-        return BookingMapper.toResponseDto(bookingRepository.save(booking));
+        return BookingMapper.toResponseDto(booking);
     }
 
     @Override
@@ -86,16 +90,12 @@ public class BookingServiceImpl implements BookingService {
             case "CURRENT" -> bookingRepository.findCurrentByBooker(userId, LocalDateTime.now());
             case "PAST" -> bookingRepository.findPastByBooker(userId, LocalDateTime.now());
             case "FUTURE" -> bookingRepository.findFutureByBooker(userId, LocalDateTime.now());
-            case "WAITING" ->
-                    bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-            case "REJECTED" ->
-                    bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+            case "WAITING" -> bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+            case "REJECTED" -> bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
             default -> throw new ValidationException("Unknown state: " + state);
         };
 
-        return bookings.stream()
-                .map(BookingMapper::toResponseDto)
-                .collect(Collectors.toList());
+        return bookings.stream().map(BookingMapper::toResponseDto).collect(Collectors.toList());
     }
 
     @Override
@@ -108,20 +108,15 @@ public class BookingServiceImpl implements BookingService {
             case "CURRENT" -> bookingRepository.findCurrentByOwner(userId, LocalDateTime.now());
             case "PAST" -> bookingRepository.findPastByOwner(userId, LocalDateTime.now());
             case "FUTURE" -> bookingRepository.findFutureByOwner(userId, LocalDateTime.now());
-            case "WAITING" ->
-                    bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
-            case "REJECTED" ->
-                    bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
+            case "WAITING" -> bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.WAITING);
+            case "REJECTED" -> bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, BookingStatus.REJECTED);
             default -> throw new ValidationException("Unknown state: " + state);
         };
 
-        return bookings.stream()
-                .map(BookingMapper::toResponseDto)
-                .collect(Collectors.toList());
+        return bookings.stream().map(BookingMapper::toResponseDto).collect(Collectors.toList());
     }
 
     private boolean isOwner(Booking booking, Long userId) {
         return booking.getItem().getOwner().getId().equals(userId);
     }
-
 }
