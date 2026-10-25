@@ -5,7 +5,6 @@ import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -35,7 +34,8 @@ public class BaseClient {
                 path,
                 HttpMethod.GET,
                 entity,
-                new ParameterizedTypeReference<List<T>>() {}
+                new ParameterizedTypeReference<List<T>>() {
+                }
         );
         return response.getBody();
     }
