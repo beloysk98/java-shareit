@@ -40,11 +40,19 @@ class ItemRequestServiceImplTest {
         UserDto user = userService.create(UserDto.builder().name("Req2").email("req2@test.com").build());
 
         requestService.create(user.getId(), ItemRequestDto.builder().description("Item 1").build());
+
+        try {
+            Thread.sleep(10);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
+
         requestService.create(user.getId(), ItemRequestDto.builder().description("Item 2").build());
 
         List<ItemRequestResponseDto> requests = requestService.getAllByRequestor(user.getId());
 
         assertThat(requests).hasSize(2);
+
         assertThat(requests.get(0).getDescription()).isEqualTo("Item 2");
     }
 
