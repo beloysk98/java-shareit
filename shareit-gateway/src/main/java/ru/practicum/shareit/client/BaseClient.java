@@ -1,9 +1,10 @@
 package ru.practicum.shareit.client;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 
+import java.util.Collections;
 import java.util.Map;
 
 public class BaseClient {
@@ -52,6 +53,9 @@ public class BaseClient {
         }
 
         HttpEntity<T> requestEntity = new HttpEntity<>(body, headers);
-        return rest.exchange(path, method, requestEntity, responseType, parameters);
+
+        Map<String, Object> params = (parameters != null) ? parameters : Collections.emptyMap();
+
+        return rest.exchange(path, method, requestEntity, responseType, params);
     }
 }

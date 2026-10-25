@@ -1,8 +1,10 @@
 package ru.practicum.shareit.client;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
@@ -13,8 +15,13 @@ import java.util.List;
 public class UserClient extends BaseClient {
     private static final String API_PREFIX = "/users";
 
+    @Autowired
     public UserClient(RestTemplateBuilder builder, @Value("${shareit-server.url}") String serverUrl) {
         super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl)).build());
+    }
+
+    public UserClient(RestTemplate rest) {
+        super(rest);
     }
 
     public UserDto create(UserDto userDto) {
