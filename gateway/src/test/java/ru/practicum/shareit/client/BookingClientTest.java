@@ -38,7 +38,7 @@ class BookingClientTest {
         when(rest.exchange(anyString(), any(), any(), eq(Object.class), anyMap()))
                 .thenReturn(ResponseEntity.ok(new Object()));
 
-        client.approve(1L, 5L, true);
+        client.approve(2L, true, 1L);
 
         verify(rest).exchange(eq("/bookings/5"), eq(HttpMethod.PATCH), any(), eq(Object.class), eq(Map.of("approved", true)));
     }
