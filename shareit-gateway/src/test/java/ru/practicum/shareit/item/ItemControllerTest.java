@@ -14,9 +14,9 @@ import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -33,7 +33,8 @@ class ItemControllerTest {
     @Test
     void createItem_shouldReturnCreated() throws Exception {
         ItemDto dto = ItemDto.builder().name("Test").description("Desc").available(true).build();
-        when(itemClient.create(eq(1L), any(ItemDto.class))).thenReturn(Map.of("id", 1));
+        ItemDto returned = ItemDto.builder().id(1L).name("Test").description("Desc").available(true).build();
+        when(itemClient.create(anyLong(), any())).thenReturn(returned);
 
         mockMvc.perform(post("/items")
                         .header("X-Sharer-User-Id", 1L)
@@ -57,7 +58,8 @@ class ItemControllerTest {
     @Test
     void updateItem_shouldReturnOk() throws Exception {
         ItemDto dto = ItemDto.builder().name("Upd").build();
-        when(itemClient.update(eq(1L), eq(1L), any(ItemDto.class))).thenReturn(Map.of("name", "Upd"));
+        ItemDto returned = ItemDto.builder().id(1L).name("Upd").description("Desc").available(true).build();
+        when(itemClient.update(eq(1L), eq(1L), any(ItemDto.class))).thenReturn(returned);
 
         mockMvc.perform(patch("/items/1")
                         .header("X-Sharer-User-Id", 1L)
@@ -69,7 +71,8 @@ class ItemControllerTest {
 
     @Test
     void getById_shouldReturnOk() throws Exception {
-        when(itemClient.getById(1L, 1L)).thenReturn(Map.of("id", 1));
+        ItemDto returned = ItemDto.builder().id(1L).name("Test").description("Desc").available(true).build();
+        when(itemClient.getById(1L, 1L)).thenReturn(returned);
 
         mockMvc.perform(get("/items/1")
                         .header("X-Sharer-User-Id", 1L))
@@ -79,7 +82,8 @@ class ItemControllerTest {
 
     @Test
     void getByOwner_shouldReturnOk() throws Exception {
-        when(itemClient.getByOwner(1L)).thenReturn(List.of(Map.of("id", 1)));
+        ItemDto item = ItemDto.builder().id(1L).name("Test").description("Desc").available(true).build();
+        when(itemClient.getByOwner(1L)).thenReturn(List.of(item));
 
         mockMvc.perform(get("/items")
                         .header("X-Sharer-User-Id", 1L))
@@ -89,7 +93,8 @@ class ItemControllerTest {
 
     @Test
     void searchItems_shouldReturnOk() throws Exception {
-        when(itemClient.search("Test")).thenReturn(List.of(Map.of("id", 1)));
+        ItemDto item = ItemDto.builder().id(1L).name("Test").description("Desc").available(true).build();
+        when(itemClient.search("Test")).thenReturn(List.of(item));
 
         mockMvc.perform(get("/items/search").param("text", "Test"))
                 .andExpect(status().isOk())
@@ -99,7 +104,8 @@ class ItemControllerTest {
     @Test
     void addComment_shouldReturnOk() throws Exception {
         CommentDto req = CommentDto.builder().text("Nice").build();
-        when(itemClient.addComment(eq(1L), eq(1L), any(CommentDto.class))).thenReturn(Map.of("text", "Nice"));
+        CommentDto returned = CommentDto.builder().id(1L).text("Nice").authorName("Name").build();
+        when(itemClient.addComment(eq(1L), eq(1L), any(CommentDto.class))).thenReturn(returned);
 
         mockMvc.perform(post("/items/1/comment")
                         .header("X-Sharer-User-Id", 1L)

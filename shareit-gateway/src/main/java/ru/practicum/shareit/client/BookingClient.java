@@ -17,22 +17,22 @@ public class BookingClient extends BaseClient {
     }
 
     public Object create(Long userId, BookingRequestDto dto) {
-        return post(API_PREFIX, userId, dto).getBody();
+        return post(API_PREFIX, userId, dto, Object.class).getBody();
     }
 
     public Object approve(Long userId, Long bookingId, Boolean approved) {
-        return patch(API_PREFIX + "/" + bookingId, userId, Map.of("approved", approved), null).getBody();
+        return patch(API_PREFIX + "/" + bookingId, userId, Map.of("approved", approved), null, Object.class).getBody();
     }
 
     public Object getById(Long userId, Long bookingId) {
-        return get(API_PREFIX + "/" + bookingId, userId).getBody();
+        return get(API_PREFIX + "/" + bookingId, userId, Object.class).getBody();
     }
 
     public Object getAllByBooker(Long userId, String state) {
-        return get(API_PREFIX, userId, Map.of("state", state)).getBody();
+        return get(API_PREFIX, userId, Map.of("state", state), Object.class).getBody();
     }
 
     public Object getAllByOwner(Long userId, String state) {
-        return get(API_PREFIX + "/owner", userId, Map.of("state", state)).getBody();
+        return get(API_PREFIX + "/owner", userId, Map.of("state", state), Object.class).getBody();
     }
 }

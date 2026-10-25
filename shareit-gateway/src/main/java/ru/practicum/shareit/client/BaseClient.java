@@ -13,38 +13,38 @@ public class BaseClient {
         this.rest = rest;
     }
 
-    protected ResponseEntity<Object> get(String path) {
-        return get(path, null, null);
+    protected <T> ResponseEntity<T> get(String path, Class<T> responseType) {
+        return get(path, null, null, responseType);
     }
 
-    protected ResponseEntity<Object> get(String path, Long userId) {
-        return get(path, userId, null);
+    protected <T> ResponseEntity<T> get(String path, Long userId, Class<T> responseType) {
+        return get(path, userId, null, responseType);
     }
 
-    protected ResponseEntity<Object> get(String path, Long userId, Map<String, Object> parameters) {
-        return makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null);
-    }
-
-    @SuppressFBWarnings
-    protected <T> ResponseEntity<Object> post(String path, Long userId, T body) {
-        return makeAndSendRequest(HttpMethod.POST, path, userId, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> patch(String path, Long userId, T body) {
-        return patch(path, userId, null, body);
-    }
-
-    protected <T> ResponseEntity<Object> patch(String path, Long userId, Map<String, Object> parameters, T body) {
-        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body);
+    protected <T> ResponseEntity<T> get(String path, Long userId, Map<String, Object> parameters, Class<T> responseType) {
+        return makeAndSendRequest(HttpMethod.GET, path, userId, parameters, null, responseType);
     }
 
     @SuppressFBWarnings
-    protected ResponseEntity<Object> delete(String path, Long userId) {
-        return makeAndSendRequest(HttpMethod.DELETE, path, userId, null, null);
+    protected <T, R> ResponseEntity<R> post(String path, Long userId, T body, Class<R> responseType) {
+        return makeAndSendRequest(HttpMethod.POST, path, userId, null, body, responseType);
     }
 
-    private <T> ResponseEntity<Object> makeAndSendRequest(HttpMethod method, String path, Long userId,
-                                                          Map<String, Object> parameters, T body) {
+    protected <T, R> ResponseEntity<R> patch(String path, Long userId, T body, Class<R> responseType) {
+        return patch(path, userId, null, body, responseType);
+    }
+
+    protected <T, R> ResponseEntity<R> patch(String path, Long userId, Map<String, Object> parameters, T body, Class<R> responseType) {
+        return makeAndSendRequest(HttpMethod.PATCH, path, userId, parameters, body, responseType);
+    }
+
+    @SuppressFBWarnings
+    protected <T> ResponseEntity<T> delete(String path, Long userId, Class<T> responseType) {
+        return makeAndSendRequest(HttpMethod.DELETE, path, userId, null, null, responseType);
+    }
+
+    private <T, R> ResponseEntity<R> makeAndSendRequest(HttpMethod method, String path, Long userId,
+                                                        Map<String, Object> parameters, T body, Class<R> responseType) {
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
         if (userId != null) {
@@ -52,6 +52,6 @@ public class BaseClient {
         }
 
         HttpEntity<T> requestEntity = new HttpEntity<>(body, headers);
-        return rest.exchange(path, method, requestEntity, Object.class, parameters);
+        return rest.exchange(path, method, requestEntity, responseType, parameters);
     }
 }

@@ -13,7 +13,6 @@ import ru.practicum.shareit.client.RequestClient;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -32,7 +31,8 @@ class ItemRequestControllerTest {
     @Test
     void createRequest_shouldReturnCreated() throws Exception {
         ItemRequestDto dto = ItemRequestDto.builder().description("Need item").build();
-        when(requestClient.create(eq(1L), any(ItemRequestDto.class))).thenReturn(Map.of("id", 1));
+        ItemRequestDto returned = ItemRequestDto.builder().id(1L).description("Need item").build();
+        when(requestClient.create(eq(1L), any(ItemRequestDto.class))).thenReturn(returned);
 
         mockMvc.perform(post("/requests")
                         .header("X-Sharer-User-Id", 1L)
@@ -55,7 +55,8 @@ class ItemRequestControllerTest {
 
     @Test
     void getAllByRequestor_shouldReturnOk() throws Exception {
-        when(requestClient.getAllByRequestor(1L)).thenReturn(List.of(Map.of("id", 1)));
+        ItemRequestDto req = ItemRequestDto.builder().id(1L).description("Need").build();
+        when(requestClient.getAllByRequestor(1L)).thenReturn(List.of(req));
 
         mockMvc.perform(get("/requests")
                         .header("X-Sharer-User-Id", 1L))
@@ -65,7 +66,8 @@ class ItemRequestControllerTest {
 
     @Test
     void getAllOther_shouldReturnOk() throws Exception {
-        when(requestClient.getAllOther(1L)).thenReturn(List.of(Map.of("id", 2)));
+        ItemRequestDto req = ItemRequestDto.builder().id(2L).description("Other").build();
+        when(requestClient.getAllOther(1L)).thenReturn(List.of(req));
 
         mockMvc.perform(get("/requests/all")
                         .header("X-Sharer-User-Id", 1L))
@@ -75,7 +77,8 @@ class ItemRequestControllerTest {
 
     @Test
     void getById_shouldReturnOk() throws Exception {
-        when(requestClient.getById(1L, 5L)).thenReturn(Map.of("id", 5));
+        ItemRequestDto req = ItemRequestDto.builder().id(5L).description("Need").build();
+        when(requestClient.getById(1L, 5L)).thenReturn(req);
 
         mockMvc.perform(get("/requests/5")
                         .header("X-Sharer-User-Id", 1L))

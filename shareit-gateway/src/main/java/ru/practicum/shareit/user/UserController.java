@@ -8,6 +8,8 @@ import ru.practicum.shareit.client.UserClient;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
+import java.util.List;
+
 @RestController
 @RequestMapping(path = "/users")
 @RequiredArgsConstructor
@@ -16,23 +18,23 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public Object create(@Valid @RequestBody UserDto userDto) {
+    public UserDto create(@Valid @RequestBody UserDto userDto) {
         return userClient.create(userDto);
     }
 
     @PatchMapping("/{userId}")
-    public Object update(@PathVariable Long userId,
-                         @Valid @RequestBody UserUpdateDto userDto) {
+    public UserDto update(@PathVariable Long userId,
+                          @Valid @RequestBody UserUpdateDto userDto) {
         return userClient.update(userId, userDto);
     }
 
     @GetMapping("/{userId}")
-    public Object getById(@PathVariable Long userId) {
+    public UserDto getById(@PathVariable Long userId) {
         return userClient.getById(userId);
     }
 
     @GetMapping
-    public Object getAll() {
+    public List<UserDto> getAll() {
         return userClient.getAll();
     }
 

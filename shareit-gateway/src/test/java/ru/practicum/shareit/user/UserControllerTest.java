@@ -14,7 +14,6 @@ import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -34,7 +33,8 @@ class UserControllerTest {
     @Test
     void createUser_shouldReturnCreated() throws Exception {
         UserDto dto = UserDto.builder().name("Name").email("test@test.com").build();
-        when(userClient.create(any(UserDto.class))).thenReturn(Map.of("id", 1));
+        UserDto returned = UserDto.builder().id(1L).name("Name").email("test@test.com").build();
+        when(userClient.create(any())).thenReturn(returned);
 
         mockMvc.perform(post("/users")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -56,7 +56,8 @@ class UserControllerTest {
     @Test
     void updateUser_shouldReturnOk() throws Exception {
         UserUpdateDto dto = UserUpdateDto.builder().name("New").build();
-        when(userClient.update(eq(1L), any(UserUpdateDto.class))).thenReturn(Map.of("name", "New"));
+        UserDto returned = UserDto.builder().id(1L).name("New").email("test@test.com").build();
+        when(userClient.update(eq(1L), any(UserUpdateDto.class))).thenReturn(returned);
 
         mockMvc.perform(patch("/users/1")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -67,7 +68,8 @@ class UserControllerTest {
 
     @Test
     void getUserById_shouldReturnOk() throws Exception {
-        when(userClient.getById(1L)).thenReturn(Map.of("id", 1));
+        UserDto returned = UserDto.builder().id(1L).name("Name").email("test@test.com").build();
+        when(userClient.getById(1L)).thenReturn(returned);
 
         mockMvc.perform(get("/users/1"))
                 .andExpect(status().isOk())
@@ -76,7 +78,9 @@ class UserControllerTest {
 
     @Test
     void getAllUsers_shouldReturnOk() throws Exception {
-        when(userClient.getAll()).thenReturn(List.of(Map.of("id", 1), Map.of("id", 2)));
+        UserDto user1 = UserDto.builder().id(1L).name("Name").email("test@test.com").build();
+        UserDto user2 = UserDto.builder().id(2L).name("Name2").email("test2@test.com").build();
+        when(userClient.getAll()).thenReturn(List.of(user1, user2));
 
         mockMvc.perform(get("/users"))
                 .andExpect(status().isOk())

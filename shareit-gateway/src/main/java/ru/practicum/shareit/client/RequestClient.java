@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
+import java.util.List;
+
 @Service
 public class RequestClient extends BaseClient {
     private static final String API_PREFIX = "/requests";
@@ -14,19 +16,21 @@ public class RequestClient extends BaseClient {
         super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl)).build());
     }
 
-    public Object create(Long userId, ItemRequestDto dto) {
-        return post(API_PREFIX, userId, dto).getBody();
+    public ItemRequestDto create(Long userId, ItemRequestDto dto) {
+        return post(API_PREFIX, userId, dto, ItemRequestDto.class).getBody();
     }
 
-    public Object getAllByRequestor(Long userId) {
-        return get(API_PREFIX, userId).getBody();
+    @SuppressWarnings("unchecked")
+    public List<ItemRequestDto> getAllByRequestor(Long userId) {
+        return (List<ItemRequestDto>) get(API_PREFIX, userId, List.class).getBody();
     }
 
-    public Object getAllOther(Long userId) {
-        return get(API_PREFIX + "/all", userId).getBody();
+    @SuppressWarnings("unchecked")
+    public List<ItemRequestDto> getAllOther(Long userId) {
+        return (List<ItemRequestDto>) get(API_PREFIX + "/all", userId, List.class).getBody();
     }
 
-    public Object getById(Long userId, Long requestId) {
-        return get(API_PREFIX + "/" + requestId, userId).getBody();
+    public ItemRequestDto getById(Long userId, Long requestId) {
+        return get(API_PREFIX + "/" + requestId, userId, ItemRequestDto.class).getBody();
     }
 }

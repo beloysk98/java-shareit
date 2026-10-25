@@ -7,6 +7,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -17,27 +18,29 @@ public class ItemClient extends BaseClient {
         super(builder.uriTemplateHandler(new DefaultUriBuilderFactory(serverUrl)).build());
     }
 
-    public Object create(Long userId, ItemDto itemDto) {
-        return post(API_PREFIX, userId, itemDto).getBody();
+    public ItemDto create(Long userId, ItemDto itemDto) {
+        return post(API_PREFIX, userId, itemDto, ItemDto.class).getBody();
     }
 
-    public Object update(Long userId, Long itemId, ItemDto itemDto) {
-        return patch(API_PREFIX + "/" + itemId, userId, itemDto).getBody();
+    public ItemDto update(Long userId, Long itemId, ItemDto itemDto) {
+        return patch(API_PREFIX + "/" + itemId, userId, itemDto, ItemDto.class).getBody();
     }
 
-    public Object getById(Long userId, Long itemId) {
-        return get(API_PREFIX + "/" + itemId, userId).getBody();
+    public ItemDto getById(Long userId, Long itemId) {
+        return get(API_PREFIX + "/" + itemId, userId, ItemDto.class).getBody();
     }
 
-    public Object getByOwner(Long userId) {
-        return get(API_PREFIX, userId).getBody();
+    @SuppressWarnings("unchecked")
+    public List<ItemDto> getByOwner(Long userId) {
+        return (List<ItemDto>) get(API_PREFIX, userId, List.class).getBody();
     }
 
-    public Object search(String text) {
-        return get(API_PREFIX + "/search", null, Map.of("text", text)).getBody();
+    @SuppressWarnings("unchecked")
+    public List<ItemDto> search(String text) {
+        return (List<ItemDto>) get(API_PREFIX + "/search", null, Map.of("text", text), List.class).getBody();
     }
 
-    public Object addComment(Long userId, Long itemId, CommentDto commentDto) {
-        return post(API_PREFIX + "/" + itemId + "/comment", userId, commentDto).getBody();
+    public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) {
+        return post(API_PREFIX + "/" + itemId + "/comment", userId, commentDto, CommentDto.class).getBody();
     }
 }
