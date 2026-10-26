@@ -2,15 +2,20 @@ package ru.practicum.shareit.client;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.dto.UserUpdateDto;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 class UserClientTest {
 
     private RestTemplate rest;
@@ -54,12 +59,13 @@ class UserClientTest {
 
     @Test
     void getAll_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(java.util.List.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(java.util.List.of()));
+        when(rest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.getAll();
 
-        verify(rest).exchange(eq("/users"), eq(HttpMethod.GET), any(), eq(java.util.List.class), anyMap());
+        verify(rest).exchange(eq("/users"), eq(HttpMethod.GET), any(HttpEntity.class),
+                any(ParameterizedTypeReference.class));
     }
 
     @Test

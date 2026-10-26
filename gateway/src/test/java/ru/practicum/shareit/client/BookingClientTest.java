@@ -2,16 +2,20 @@ package ru.practicum.shareit.client;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 class BookingClientTest {
 
     private RestTemplate rest;
@@ -40,7 +44,8 @@ class BookingClientTest {
 
         client.approve(2L, true, 1L);
 
-        verify(rest).exchange(eq("/bookings/5"), eq(HttpMethod.PATCH), any(), eq(Object.class), eq(Map.of("approved", true)));
+        verify(rest).exchange(eq("/bookings/2?approved={approved}"), eq(HttpMethod.PATCH), any(),
+                eq(Object.class), eq(Map.of("approved", true)));
     }
 
     @Test
@@ -55,21 +60,23 @@ class BookingClientTest {
 
     @Test
     void getAllByBooker_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(Object.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(new Object()));
+        when(rest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.getAllByBooker(1L, "ALL");
 
-        verify(rest).exchange(eq("/bookings"), eq(HttpMethod.GET), any(), eq(Object.class), eq(Map.of("state", "ALL")));
+        verify(rest).exchange(eq("/bookings?state=ALL"), eq(HttpMethod.GET), any(HttpEntity.class),
+                any(ParameterizedTypeReference.class));
     }
 
     @Test
     void getAllByOwner_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(Object.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(new Object()));
+        when(rest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.getAllByOwner(1L, "ALL");
 
-        verify(rest).exchange(eq("/bookings/owner"), eq(HttpMethod.GET), any(), eq(Object.class), eq(Map.of("state", "ALL")));
+        verify(rest).exchange(eq("/bookings/owner?state=ALL"), eq(HttpMethod.GET), any(HttpEntity.class),
+                any(ParameterizedTypeReference.class));
     }
 }

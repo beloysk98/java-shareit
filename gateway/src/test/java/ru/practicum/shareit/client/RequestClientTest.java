@@ -2,14 +2,19 @@ package ru.practicum.shareit.client;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 
+import java.util.List;
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+@SuppressWarnings({"unchecked", "rawtypes"})
 class RequestClientTest {
 
     private RestTemplate rest;
@@ -33,22 +38,24 @@ class RequestClientTest {
 
     @Test
     void getAllByRequestor_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(java.util.List.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(java.util.List.of()));
+        when(rest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.getAllByRequestor(1L);
 
-        verify(rest).exchange(eq("/requests"), eq(HttpMethod.GET), any(), eq(java.util.List.class), anyMap());
+        verify(rest).exchange(eq("/requests"), eq(HttpMethod.GET), any(HttpEntity.class),
+                any(ParameterizedTypeReference.class));
     }
 
     @Test
     void getAllOther_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(java.util.List.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(java.util.List.of()));
+        when(rest.exchange(anyString(), eq(HttpMethod.GET), any(HttpEntity.class), any(ParameterizedTypeReference.class)))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.getAllOther(1L);
 
-        verify(rest).exchange(eq("/requests/all"), eq(HttpMethod.GET), any(), eq(java.util.List.class), anyMap());
+        verify(rest).exchange(eq("/requests/all"), eq(HttpMethod.GET), any(HttpEntity.class),
+                any(ParameterizedTypeReference.class));
     }
 
     @Test

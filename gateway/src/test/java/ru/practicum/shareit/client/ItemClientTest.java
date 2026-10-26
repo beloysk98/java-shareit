@@ -8,6 +8,7 @@ import org.springframework.web.client.RestTemplate;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemDto;
 
+import java.util.List;
 import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.*;
@@ -56,22 +57,23 @@ class ItemClientTest {
 
     @Test
     void getByOwner_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(java.util.List.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(java.util.List.of()));
+        when(rest.exchange(anyString(), any(), any(), eq(List.class), anyMap()))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.getByOwner(1L);
 
-        verify(rest).exchange(eq("/items"), eq(HttpMethod.GET), any(), eq(java.util.List.class), anyMap());
+        verify(rest).exchange(eq("/items"), eq(HttpMethod.GET), any(), eq(List.class), anyMap());
     }
 
     @Test
     void search_shouldCallExchange() {
-        when(rest.exchange(anyString(), any(), any(), eq(java.util.List.class), anyMap()))
-                .thenReturn(ResponseEntity.ok(java.util.List.of()));
+        when(rest.exchange(anyString(), any(), any(), eq(List.class), anyMap()))
+                .thenReturn(ResponseEntity.ok(List.of()));
 
         client.search("text");
 
-        verify(rest).exchange(eq("/items/search"), eq(HttpMethod.GET), any(), eq(java.util.List.class), eq(Map.of("text", "text")));
+        verify(rest).exchange(eq("/items/search?text={text}"), eq(HttpMethod.GET), any(), eq(List.class),
+                eq(Map.of("text", "text")));
     }
 
     @Test

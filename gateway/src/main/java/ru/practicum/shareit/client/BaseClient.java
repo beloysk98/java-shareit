@@ -2,6 +2,7 @@ package ru.practicum.shareit.client;
 
 import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.core.ResolvableType;
 import org.springframework.http.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,14 +30,10 @@ public class BaseClient {
     }
 
     protected <T> List<T> getList(String path, Long userId, Class<T> elementType) {
-        HttpHeaders headers = headers(userId);
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-        ResponseEntity<List<T>> response = rest.exchange(
-                path,
-                HttpMethod.GET,
-                entity,
-                new ParameterizedTypeReference<List<T>>() {}
-        );
+        HttpEntity<?> entity = new HttpEntity<>(headers(userId));
+        ParameterizedTypeReference<List<T>> type = ParameterizedTypeReference.forType(
+                ResolvableType.forClassWithGenerics(List.class, elementType).getType());
+        ResponseEntity<List<T>> response = rest.exchange(path, HttpMethod.GET, entity, type);
         return response.getBody();
     }
 

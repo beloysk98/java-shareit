@@ -30,7 +30,8 @@ public class BookingClient extends BaseClient {
 
     public Object approve(Long bookingId, Boolean approved, Long userId) {
         Map<String, Object> parameters = Map.of("approved", approved);
-        return patch(API_PREFIX + "/" + bookingId, userId, parameters, null, Object.class).getBody();
+        return patch(API_PREFIX + "/" + bookingId + "?approved={approved}", userId, parameters, null, Object.class)
+                .getBody();
     }
 
     public Object getById(Long userId, Long bookingId) {

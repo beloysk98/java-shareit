@@ -44,7 +44,8 @@ public class ItemClient extends BaseClient {
 
     @SuppressWarnings("unchecked")
     public List<ItemDto> search(String text) {
-        return (List<ItemDto>) get(API_PREFIX + "/search", null, Map.of("text", text), List.class).getBody();
+        return (List<ItemDto>) get(API_PREFIX + "/search?text={text}", null, Map.of("text", text), List.class)
+                .getBody();
     }
 
     public CommentDto addComment(Long userId, Long itemId, CommentDto commentDto) {
