@@ -9,6 +9,7 @@ import org.springframework.web.util.DefaultUriBuilderFactory;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class BookingClient extends BaseClient {
@@ -28,8 +29,8 @@ public class BookingClient extends BaseClient {
     }
 
     public Object approve(Long bookingId, Boolean approved, Long userId) {
-        String path = API_PREFIX + "/" + bookingId + "?approved=" + approved;
-        return patch(path, userId, null, Object.class).getBody();
+        Map<String, Object> parameters = Map.of("approved", approved);
+        return patch(API_PREFIX + "/" + bookingId, userId, parameters, null, Object.class).getBody();
     }
 
     public Object getById(Long userId, Long bookingId) {
